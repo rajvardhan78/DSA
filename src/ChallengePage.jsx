@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { challengeDays, projectLabs, trackMeta } from "./data/challenge.js";
 import { streakStatus } from "./streak.js";
+import lotusIcon from "./data/lotus.png";
 
 const TOTAL_TASKS = challengeDays.length * 5;
 const PHASE_LABELS = {
@@ -130,7 +131,7 @@ export default function ChallengePage({
       <div className="replica-top-inner">
         <div className="replica-brand-row">
           <div>
-            <div className="replica-brand">DEVSprint <span>·</span> BUILD YOUR NEXT CHAPTER</div>
+            <div className="replica-brand"><img src="/devsprint-icon.svg" alt="" />DEVSprint <span>·</span> BUILD YOUR NEXT CHAPTER</div>
             <h1>60-Day Developer Sprint</h1>
             <p className="replica-sub">C# Core → .NET Core → JavaScript → React. One focused lesson and four LeetCode problems a day.</p>
           </div>
@@ -207,6 +208,7 @@ export default function ChallengePage({
           {backupNotice && <p className="backup-notice" role="status">{backupNotice}</p>}
         </>}
         <div className="replica-footer-bottom"><span>60 days · 240 problems · GFG notes · four focused stacks</span><span>Check-offs save here · confirmed email syncs your streak</span></div>
+        <div className="replica-personal-footer"><span>Getting better for my</span><img src={lotusIcon} alt="lotus" /></div>
       </footer>
     </main>
   </div>;

@@ -41,7 +41,8 @@ body { background: var(--paper); }
 .replica-top-inner, .replica-wrap { max-width: 900px; padding-inline: 16px; margin: 0 auto; }
 .replica-top-inner { padding-top: 13px; }
 .replica-brand-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.replica-brand { color: var(--accent); font-family: var(--replica-mono); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; }
+.replica-brand { display: flex; align-items: center; gap: 7px; color: var(--accent); font-family: var(--replica-mono); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; }
+.replica-brand img { width: 24px; height: 24px; border-radius: 7px; }
 .replica-brand span { color: var(--muted); }
 .replica-brand-row h1 { margin: 2px 0 0; color: var(--ink); font-family: var(--replica-display); font-size: clamp(23px, 4vw, 30px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; }
 .replica-sub { margin: 3px 0 0; color: var(--muted); font-size: 10px; }
@@ -279,6 +280,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .replica-streak-tile { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); background: var(--accent-soft); }
 .replica-streak-tile strong { color: var(--accent); }
 .replica-streak-tile strong span { font-size: .85em; }
+.replica-personal-footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 0 2px; margin-top: 10px; border-top: 1px solid var(--border); color: var(--accent); font-family: var(--replica-display); font-size: 15px; font-weight: 600; }
+.replica-personal-footer img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
 .replica-streak-alert { display: flex; align-items: center; gap: 9px; padding: 9px 12px; margin-top: 8px; border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); border-radius: 7px; color: var(--ink); background: var(--accent-soft); }
 .replica-streak-alert > span { flex: 0 0 auto; font-size: 17px; }
 .replica-streak-alert p { margin: 0; color: var(--muted); font-size: 12px; }
