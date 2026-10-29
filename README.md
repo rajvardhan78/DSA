@@ -26,6 +26,16 @@ Connect these services before turning the enrollment form on in production:
 3. Add the variables below to **Vercel → Project → Settings → Environment Variables**. `SITE_URL` should be the public HTTPS deployment URL or your custom domain. `REMINDER_FROM_EMAIL` must use the verified Resend domain. Generate a private random `CRON_SECRET` and keep it out of source control.
 4. Deploy to production. Vercel registers the cron from `vercel.json` on production deployments.
 
+### Where the environment variables come from
+
+- `RESEND_API_KEY`: create an API key in the Resend dashboard under **API Keys**. Verify the sender domain there first.
+- `REMINDER_FROM_EMAIL`: the sender address on that verified domain, for example `DevSprint <reminders@your-domain.com>`.
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`: create a Redis database in Upstash, then copy its REST URL and REST token from the database's **REST API** section.
+- `SITE_URL`: the public app origin, such as `https://your-project.vercel.app` or your custom domain. This is a URL, not a secret.
+- `CRON_SECRET`: generate a private random value. On Windows PowerShell, run `[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))`.
+
+Add these in **Vercel → Project → Settings → Environment Variables** for Production (and Preview/Development if you need those environments). Keep the provider keys and cron secret out of React code and source control. Vercel injects the production project URL during builds; it is also used to generate the canonical metadata, robots file, and sitemap.
+
 | Variable | Purpose |
 | --- | --- |
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
@@ -40,6 +50,10 @@ The cron is scheduled at `03:30 UTC`, which is 9:00 AM in India Standard Time. O
 ## Deploy
 
 Import this repository into Vercel and use the project defaults. `vercel.json` sets the build command and `dist` output directory. Add the reminder environment variables above if daily email is wanted; the rest of the app works without them.
+
+## Search visibility
+
+The build adds a production-domain canonical URL, Open Graph/Twitter metadata, and `WebSite` JSON-LD. The `/robots.txt` and `/sitemap.xml` routes are generated from `SITE_URL` or Vercel's production project URL. After deployment, submit `https://your-domain/sitemap.xml` in Google Search Console. The challenge UI is React-rendered; the HTML also includes a no-JavaScript summary for crawlers and visitors that do not run client code.
 
 ## Notes
 

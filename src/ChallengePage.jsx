@@ -131,7 +131,7 @@ export default function ChallengePage({
       <div className="replica-top-inner">
         <div className="replica-brand-row">
           <div>
-            <div className="replica-brand"><img src="/devsprint-icon.svg" alt="" />DEVSprint <span>·</span> BUILD YOUR NEXT CHAPTER</div>
+            <div className="replica-brand"><img src="/devsprint-icon.svg" alt="" /><span>DEVSprint <i>·</i> BUILD YOUR NEXT CHAPTER</span></div>
             <h1>60-Day Developer Sprint</h1>
             <p className="replica-sub">C# Core → .NET Core → JavaScript → React. One focused lesson and four LeetCode problems a day.</p>
           </div>

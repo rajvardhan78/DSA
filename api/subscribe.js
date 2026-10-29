@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         intro: "Confirm your email to receive one daily placement sprint reminder around 9:00 AM India Standard Time, plus a 24-hour save warning if your LeetCode streak is at risk.",
         actionUrl: confirmUrl,
         actionLabel: "Confirm daily reminders",
-        content: `<div style="margin-top:20px;padding:15px 17px;border:1px solid #E7E0E4;border-radius:10px;background:#FBF9FA;color:#7A6E74;font:13px/1.6 Arial,sans-serif">If you didn't request this, ignore this email. Your address won't be added unless you confirm.<br><br>Sent to <strong style="color:#1A1417">${emailService.escapeHtml(email)}</strong></div>`,
+        content: `<div style="margin-top:20px;padding:15px 17px;border:1px solid #E7E0E4;border-radius:10px;background:#FBF9FA;color:#7A6E74;font:13px/1.6 Courier New,Courier,monospace">If you didn't request this, ignore this email. Your address won't be added unless you confirm.<br><br>Sent to <strong style="color:#1A1417">${emailService.escapeHtml(email)}</strong></div>`,
         footer: "C# Core · .NET Core · JavaScript · React — a focused 60-day sprint."
       })
     });

@@ -17,9 +17,9 @@ a { color: inherit; }
   --done: #2e7d5b;
   --done-soft: #e4f1ea;
   --replica-shadow: 0 1px 2px rgba(26,20,23,.05), 0 8px 24px -12px rgba(26,20,23,.18);
-  --replica-display: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
-  --replica-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --replica-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --replica-display: var(--replica-mono);
+  --replica-body: var(--replica-mono);
 }
 :root[data-theme="dark"] {
   --ink: #f2edef; --paper: #161114; --surface: #1f181c; --surface-2: #271e23;
@@ -43,8 +43,8 @@ body { background: var(--paper); }
 .replica-brand-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .replica-brand { display: flex; align-items: center; gap: 7px; color: var(--accent); font-family: var(--replica-mono); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; }
 .replica-brand img { width: 24px; height: 24px; border-radius: 7px; }
-.replica-brand span { color: var(--muted); }
-.replica-brand-row h1 { margin: 2px 0 0; color: var(--ink); font-family: var(--replica-display); font-size: clamp(23px, 4vw, 30px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; }
+.replica-brand i { color: var(--muted); font-style: normal; }
+.replica-brand-row h1 { margin: 2px 0 0; color: var(--ink); font-family: var(--replica-display); font-size: clamp(23px, 4vw, 30px); font-weight: 700; letter-spacing: -.7px; line-height: 1.15; }
 .replica-sub { margin: 3px 0 0; color: var(--muted); font-size: 10px; }
 .replica-header-actions { display: flex; align-items: center; gap: 7px; padding-top: 12px; }
 .replica-date { color: var(--muted); font-family: var(--replica-mono); font-size: 8px; white-space: nowrap; }
@@ -163,7 +163,7 @@ body { background: var(--paper); }
 .replica-reminder-layout { display: grid; grid-template-columns: 1.1fr .9fr; gap: 10px; align-items: start; }
 .replica-reminder-card, .replica-email-preview, .replica-how { border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
 .replica-reminder-card { padding: 16px; }.replica-reminder-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 17px; }.replica-bell { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 7px; color: var(--accent); background: var(--accent-soft); font-size: 15px; }.replica-reminder-top > span:last-child { color: var(--muted); font-family: var(--replica-mono); font-size: 7px; }
-.replica-reminder-card h3 { margin: 6px 0; color: var(--ink); font-family: var(--replica-display); font-size: 24px; font-weight: 600; line-height: 1.05; }.replica-reminder-card h3 em { color: var(--accent); font-family: Georgia, serif; font-weight: 400; }.replica-reminder-card > p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
+.replica-reminder-card h3 { margin: 6px 0; color: var(--ink); font-family: var(--replica-display); font-size: 24px; font-weight: 600; line-height: 1.05; }.replica-reminder-card h3 em { color: var(--accent); font-family: var(--replica-mono); font-style: normal; font-weight: 400; }.replica-reminder-card > p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
 .replica-reminder-form { display: grid; gap: 7px; margin-top: 15px; }.replica-reminder-form > label:first-child { color: var(--muted); font-family: var(--replica-mono); font-size: 7px; letter-spacing: .6px; }.replica-reminder-form > input[type="email"] { height: 35px; padding: 0 9px; border: 1px solid var(--border); border-radius: 5px; color: var(--ink); background: var(--paper); font-size: 9px; }.replica-reminder-form > input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .replica-consent { display: flex; align-items: flex-start; gap: 6px; color: var(--muted); font-size: 8px; line-height: 1.5; cursor: pointer; }.replica-consent input { margin-top: 1px; }.replica-button.submit { min-height: 34px; color: #fff; border-color: var(--accent); background: var(--accent); font-weight: 600; }.replica-button.submit:hover:not(:disabled) { filter: brightness(1.08); }.replica-button.submit:disabled { opacity: .5; cursor: not-allowed; }
 .replica-message { padding: 7px 8px; border-radius: 5px; font-size: 8px; }.replica-message.success { color: #2d694b; background: var(--done-soft); }.replica-message.error { color: #9d443b; background: #fae9e6; }.replica-message.loading { color: var(--muted); background: var(--surface-2); }.replica-privacy { display: flex; gap: 7px; padding-top: 10px; margin-top: 11px; border-top: 1px solid var(--border); color: var(--muted); font-size: 7px; }
@@ -280,8 +280,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .replica-streak-tile { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); background: var(--accent-soft); }
 .replica-streak-tile strong { color: var(--accent); }
 .replica-streak-tile strong span { font-size: .85em; }
-.replica-personal-footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 0 2px; margin-top: 10px; border-top: 1px solid var(--border); color: var(--accent); font-family: var(--replica-display); font-size: 15px; font-weight: 600; }
-.replica-personal-footer img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
+.replica-personal-footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 0 2px; margin-top: 10px; border-top: 1px solid var(--border); color: var(--muted); font-family: var(--replica-mono); font-size: 13px; font-weight: 300; letter-spacing: .2px; }
+.replica-personal-footer img { width: 20px; height: 20px; object-fit: contain; image-rendering: pixelated; }
 .replica-streak-alert { display: flex; align-items: center; gap: 9px; padding: 9px 12px; margin-top: 8px; border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); border-radius: 7px; color: var(--ink); background: var(--accent-soft); }
 .replica-streak-alert > span { flex: 0 0 auto; font-size: 17px; }
 .replica-streak-alert p { margin: 0; color: var(--muted); font-size: 12px; }
