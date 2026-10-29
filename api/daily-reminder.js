@@ -1,7 +1,9 @@
 import { createHash } from "node:crypto";
 import { challengeDays } from "../src/data/challenge.js";
 import { currentStreak } from "../server/streak.js";
-import { emailHtml, escapeHtml, redis, sendEmail, siteUrl } from "../server/reminder-services.js";
+import { emailService } from "../server/emailService.js";
+import { redis, siteUrl } from "../server/reminder-services.js";
+const escapeHtml = emailService.escapeHtml;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -28,7 +30,7 @@ function warningBlock(streakCount, hoursLeft = 24) {
 function reminderHtml(day, unsubscribeUrl, appUrl, streakMessage = "") {
   const problemRows = day.problems.map((problem) => `<li style="padding:10px 0;border-bottom:1px solid #E7E0E4;color:#1A1417;font:14px/1.5 Arial,sans-serif"><span style="display:inline-block;min-width:58px;color:#7A6E74;font:700 10px/1.4 Arial,sans-serif;letter-spacing:.6px">${escapeHtml(problem.difficulty.toUpperCase())}</span><a style="color:#8A2E52;font-weight:600;text-decoration:none" href="${escapeHtml(problem.leetcodeUrl)}">${escapeHtml(problem.title)} ↗</a><br><span style="display:inline-block;margin:3px 0 0 61px"><a style="color:#7A6E74;font-size:12px" href="${escapeHtml(problem.notesUrl)}">GFG notes →</a></span></li>`).join("");
   const content = `${streakMessage}<div style="margin:20px 0;padding:16px 18px;border:1px solid #E7E0E4;border-radius:10px;background:#FBF9FA"><p style="margin:0 0 7px;color:#8A2E52;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1px">TODAY'S FOCUS</p><strong style="color:#1A1417;font:700 17px/1.4 Georgia,'Times New Roman',serif">${escapeHtml(day.title)}</strong><p style="margin:6px 0 0;color:#7A6E74;font:14px/1.55 Arial,sans-serif">${escapeHtml(day.track)} · ${escapeHtml(day.summary)}</p><a href="${escapeHtml(day.notesUrl)}" style="display:inline-block;margin-top:10px;color:#8A2E52;font:600 13px/1.4 Arial,sans-serif">Read today's GFG notes ↗</a></div><strong style="color:#1A1417;font:700 16px/1.4 Arial,sans-serif">Four focused problems</strong><ul style="padding:0;margin:6px 0 18px;list-style:none">${problemRows}</ul>`;
-  return emailHtml({
+  return emailService.render({
     preheader: `Day ${String(day.day).padStart(2, "0")} is ready: ${day.title}`,
     eyebrow: `DAY ${String(day.day).padStart(2, "0")} OF 60 · DAILY CHECK-IN`,
     title: "Your next step is ready.",
@@ -41,7 +43,7 @@ function reminderHtml(day, unsubscribeUrl, appUrl, streakMessage = "") {
 }
 
 function warningOnlyHtml(streakCount, unsubscribeUrl, appUrl) {
-  return emailHtml({
+  return emailService.render({
     preheader: `Your ${streakCount}-day DevSprint streak needs a quick save.`,
     eyebrow: "A QUICK STREAK CHECK-IN",
     title: "Keep your streak going.",
@@ -99,7 +101,7 @@ export default async function handler(req, res) {
         const html = day
           ? reminderHtml(day, unsubscribeUrl, appUrl, warning)
           : warningOnlyHtml(Number(subscriber.streakCount) || 1, unsubscribeUrl, appUrl);
-        await sendEmail({ to: email, subject, html });
+        await emailService.send({ to: email, subject, html });
         await redis(["SET", sentKey, "1", "EX", "172800", "NX"]);
         if (needsWarning) {
           subscriber = { ...subscriber, warningSentAt: new Date(now).toISOString() };

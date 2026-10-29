@@ -1,4 +1,7 @@
-import { escapeHtml, htmlPage, redis } from "../server/reminder-services.js";
+import { emailService } from "../server/emailService.js";
+import { htmlPage, redis } from "../server/reminder-services.js";
+
+const escapeHtml = emailService.escapeHtml;
 
 function formPage(token) {
   return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Unsubscribe · DevSprint</title><body style="margin:0;padding:40px 16px;background:#FBF9FA;color:#1A1417;font:15px/1.6 Arial,sans-serif"><main style="max-width:520px;margin:8vh auto;padding:36px;border:1px solid #E7E0E4;border-radius:16px;background:#fff"><p style="color:#8A2E52;font:11px monospace;letter-spacing:1.2px">DEVSPRINT · EMAIL PREFERENCES</p><h1 style="margin:0;color:#1A1417;font-size:28px">Pause the daily notes?</h1><p style="color:#7A6E74">Unsubscribe this address from future placement sprint reminders.</p><form method="post" action="/api/unsubscribe"><input type="hidden" name="token" value="${escapeHtml(token)}"><button style="margin-top:12px;padding:12px 16px;border:0;border-radius:7px;background:#8A2E52;color:#fff;font-size:14px;cursor:pointer">Unsubscribe me</button></form><a href="/" style="display:inline-block;margin-top:16px;color:#8A2E52;font-size:13px">Keep my reminders</a></main></body></html>`;

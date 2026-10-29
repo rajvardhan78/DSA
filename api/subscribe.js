@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
-import { emailHtml, escapeHtml, redis, sendEmail, siteUrl } from "../server/reminder-services.js";
+import { emailService } from "../server/emailService.js";
+import { redis, siteUrl } from "../server/reminder-services.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -20,7 +21,7 @@ export default async function handler(req, res) {
 
   try {
     const appUrl = siteUrl();
-    if (!process.env.RESEND_API_KEY || !process.env.REMINDER_FROM_EMAIL) throw new Error("Email delivery is not configured.");
+    if (!emailService.isConfigured()) throw new Error("Email delivery is not configured.");
     const emailKey = createHash("sha256").update(email).digest("hex").slice(0, 32);
     const allowed = await redis(["SET", `reminders:signup-cooldown:${emailKey}`, "1", "EX", "60", "NX"]);
     if (!allowed) return res.status(429).json({ error: "Please wait a minute before requesting another confirmation email." });
@@ -36,17 +37,17 @@ export default async function handler(req, res) {
     ]);
 
     const confirmUrl = `${appUrl}/api/confirm?token=${encodeURIComponent(token)}`;
-    await sendEmail({
+    await emailService.send({
       to: email,
       subject: "Confirm your DevSprint daily reminder",
-      html: emailHtml({
+      html: emailService.render({
         preheader: "Confirm your address to start receiving your daily DevSprint notes.",
         eyebrow: "YOUR DAILY CHECK-IN",
         title: "One good habit starts here.",
         intro: "Confirm your email to receive one daily placement sprint reminder around 9:00 AM India Standard Time, plus a 24-hour save warning if your LeetCode streak is at risk.",
         actionUrl: confirmUrl,
         actionLabel: "Confirm daily reminders",
-        content: `<div style="margin-top:20px;padding:15px 17px;border:1px solid #E7E0E4;border-radius:10px;background:#FBF9FA;color:#7A6E74;font:13px/1.6 Arial,sans-serif">If you didn't request this, ignore this email. Your address won't be added unless you confirm.<br><br>Sent to <strong style="color:#1A1417">${escapeHtml(email)}</strong></div>`,
+        content: `<div style="margin-top:20px;padding:15px 17px;border:1px solid #E7E0E4;border-radius:10px;background:#FBF9FA;color:#7A6E74;font:13px/1.6 Arial,sans-serif">If you didn't request this, ignore this email. Your address won't be added unless you confirm.<br><br>Sent to <strong style="color:#1A1417">${emailService.escapeHtml(email)}</strong></div>`,
         footer: "C# Core · .NET Core · JavaScript · React — a focused 60-day sprint."
       })
     });

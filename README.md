@@ -15,6 +15,8 @@ The client stores challenge check-offs, the challenge start date, the selected t
 
 Email enrollment uses double opt-in. Confirmation links expire after 24 hours. The app stores confirmed subscribers and their streak timestamps, sends one daily message with that subscriber's current lesson and LeetCode set, and includes an unsubscribe page in each reminder. If a subscriber has not solved a problem for 24 hours, the next scheduled reminder includes a streak warning; the 24-hour save window starts when that email is sent. If the sprint day has ended, the warning can be sent on its own.
 
+Email delivery and the shared rose-themed HTML layout are centralized in `server/emailService.js`. API handlers use `emailService.send()` for Resend delivery and `emailService.render()` for branded emails.
+
 Connect these services before turning the enrollment form on in production:
 
 1. Create an Upstash Redis database with its REST API enabled.
