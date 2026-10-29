@@ -212,66 +212,66 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 /* Readability pass: keep the compact reference layout, with less tiny text. */
-.replica-app { font-size: 16px; }
-.replica-brand { font-size: 10px; }
-.replica-brand-row h1 { font-size: clamp(25px, 4vw, 34px); }
-.replica-sub { font-size: 12px; }
-.replica-date { font-size: 10px; }
-.replica-button, .replica-theme-button { font-size: 11px; }
-.replica-meter > strong { font-size: 11px; }
-.replica-tile strong { font-size: 16px; }
-.replica-tile span { font-size: 10px; }
-.replica-tabs button { font-size: 11px; }
-.replica-chip { min-height: 29px; font-size: 10px; }
-.replica-phase-number { width: 22px; height: 22px; font-size: 9px; }
-.replica-phase-heading h2 { font-size: 15px; }
-.replica-phase-range, .replica-phase-count { font-size: 9px; }
-.replica-day > summary { min-height: 54px; }
-.replica-day-number { width: 34px; height: 34px; font-size: 13px; }
-.replica-day-title strong { font-size: 13px; }
-.replica-day-title small { font-size: 9px; }
-.replica-day-title small b { font-size: 8px; }
-.replica-section-title { font-size: 9px; }
-.replica-section-title > span { font-size: 8px; }
-.replica-task-kind { width: 20px; height: 20px; font-size: 9px; }
-.replica-task-copy > strong, .replica-task-copy a { font-size: 11px; }
-.replica-task-copy small { font-size: 9px; }
-.replica-notes-link { padding: 4px 7px; font-size: 9px; }
-.replica-day-note strong { font-size: 10px; }
-.replica-day-note p, .replica-day-note > a { font-size: 9px; }
-.replica-rhythm { font-size: 11px; }
-.replica-backup-actions button { min-height: 30px; font-size: 10px; }
-.replica-backup-code { font-size: 9px; }
-.backup-notice { font-size: 10px; }
-.replica-footer-bottom { font-size: 9px; }
-.replica-section-kicker { font-size: 9px; }
-.replica-page-intro h2 { font-size: clamp(25px, 4vw, 32px); }
-.replica-page-intro p { font-size: 12px; }
-.replica-project-summary strong { font-size: 11px; }
-.replica-project-summary small { font-size: 10px; }
-.replica-project-number { font-size: 9px; }
-.replica-project-head small { font-size: 9px; }
-.replica-project-head strong { font-size: 12px; }
-.replica-project-card > p { font-size: 10px; }
-.replica-project-count { font-size: 8px; }
-.replica-project-checklist label { font-size: 10px; }
-.replica-project-footer { font-size: 8px; }
-.replica-capstone small { font-size: 8px; }
-.replica-capstone strong { font-size: 13px; }
-.replica-capstone p { font-size: 9px; }
-.replica-capstone button { font-size: 9px; }
-.replica-bell { font-size: 17px; }
-.replica-reminder-top > span:last-child { font-size: 9px; }
-.replica-reminder-card h3 { font-size: 27px; }
-.replica-reminder-card > p { font-size: 11px; }
-.replica-reminder-form > label:first-child { font-size: 9px; }
-.replica-reminder-form > input[type="email"] { font-size: 11px; }
-.replica-consent, .replica-how > p { font-size: 10px; }
-.replica-message { font-size: 10px; }
-.replica-privacy, .replica-reminder-setup { font-size: 9px; }
-.preview-bar { font-size: 8px; }
-.preview-body > small, .preview-body footer { font-size: 7px; }
-.preview-body > p, .preview-lesson small { font-size: 8px; }
-.preview-lesson strong { font-size: 9px; }
-.preview-problem-count { font-size: 7px; }
-.replica-reminder-setup code { font-size: 8px; }
+.replica-app { font-size: 17px; }
+.replica-brand { font-size: 11px; }
+.replica-brand-row h1 { font-size: clamp(27px, 4.1vw, 36px); }
+.replica-sub { font-size: 14px; }
+.replica-date { font-size: 11px; }
+.replica-button, .replica-theme-button { font-size: 12px; }
+.replica-meter > strong { font-size: 12px; }
+.replica-tile strong { font-size: 18px; }
+.replica-tile span { font-size: 11px; }
+.replica-tabs button { font-size: 12px; }
+.replica-chip { min-height: 31px; font-size: 11px; }
+.replica-phase-number { width: 23px; height: 23px; font-size: 10px; }
+.replica-phase-heading h2 { font-size: 17px; }
+.replica-phase-range, .replica-phase-count { font-size: 10px; }
+.replica-day > summary { min-height: 57px; }
+.replica-day-number { width: 36px; height: 36px; font-size: 15px; }
+.replica-day-title strong { font-size: 15px; }
+.replica-day-title small { font-size: 10px; }
+.replica-day-title small b { font-size: 9px; }
+.replica-section-title { font-size: 10px; }
+.replica-section-title > span { font-size: 9px; }
+.replica-task-kind { width: 21px; height: 21px; font-size: 10px; }
+.replica-task-copy > strong, .replica-task-copy a { font-size: 12px; }
+.replica-task-copy small { font-size: 10px; }
+.replica-notes-link { padding: 5px 8px; font-size: 10px; }
+.replica-day-note strong { font-size: 11px; }
+.replica-day-note p, .replica-day-note > a { font-size: 11px; }
+.replica-rhythm { font-size: 12px; }
+.replica-backup-actions button { min-height: 32px; font-size: 11px; }
+.replica-backup-code { font-size: 10px; }
+.backup-notice { font-size: 11px; }
+.replica-footer-bottom { font-size: 10px; }
+.replica-section-kicker { font-size: 10px; }
+.replica-page-intro h2 { font-size: clamp(27px, 4.3vw, 34px); }
+.replica-page-intro p { font-size: 14px; }
+.replica-project-summary strong { font-size: 12px; }
+.replica-project-summary small { font-size: 11px; }
+.replica-project-number { font-size: 10px; }
+.replica-project-head small { font-size: 10px; }
+.replica-project-head strong { font-size: 13px; }
+.replica-project-card > p { font-size: 11px; }
+.replica-project-count { font-size: 9px; }
+.replica-project-checklist label { font-size: 11px; }
+.replica-project-footer { font-size: 9px; }
+.replica-capstone small { font-size: 9px; }
+.replica-capstone strong { font-size: 14px; }
+.replica-capstone p { font-size: 10px; }
+.replica-capstone button { font-size: 10px; }
+.replica-bell { font-size: 18px; }
+.replica-reminder-top > span:last-child { font-size: 10px; }
+.replica-reminder-card h3 { font-size: 30px; }
+.replica-reminder-card > p { font-size: 12px; }
+.replica-reminder-form > label:first-child { font-size: 10px; }
+.replica-reminder-form > input[type="email"] { font-size: 12px; }
+.replica-consent, .replica-how > p { font-size: 11px; }
+.replica-message { font-size: 11px; }
+.replica-privacy, .replica-reminder-setup { font-size: 10px; }
+.preview-bar { font-size: 9px; }
+.preview-body > small, .preview-body footer { font-size: 8px; }
+.preview-body > p, .preview-lesson small { font-size: 9px; }
+.preview-lesson strong { font-size: 10px; }
+.preview-problem-count { font-size: 8px; }
+.replica-reminder-setup code { font-size: 9px; }
