@@ -57,7 +57,7 @@ body { background: var(--paper); }
 .replica-meter-track { height: 5px; flex: 1; overflow: hidden; border: 1px solid var(--border); border-radius: 99px; background: var(--surface-2); }
 .replica-meter-track i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .3s ease; }
 .replica-meter > strong { min-width: 32px; color: var(--ink); font-family: var(--replica-mono); font-size: 9px; text-align: right; }
-.replica-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 8px; }
+.replica-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin-top: 8px; }
 .replica-tile { padding: 6px 9px 7px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
 .replica-tile strong { display: block; color: var(--ink); font-family: var(--replica-mono); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.2; }
 .replica-tile span { color: var(--muted); font-size: 8px; letter-spacing: .6px; text-transform: uppercase; }
@@ -275,3 +275,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .preview-lesson strong { font-size: 10px; }
 .preview-problem-count { font-size: 8px; }
 .replica-reminder-setup code { font-size: 9px; }
+
+.replica-streak-tile { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); background: var(--accent-soft); }
+.replica-streak-tile strong { color: var(--accent); }
+.replica-streak-tile strong span { font-size: .85em; }
+.replica-streak-alert { display: flex; align-items: center; gap: 9px; padding: 9px 12px; margin-top: 8px; border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); border-radius: 7px; color: var(--ink); background: var(--accent-soft); }
+.replica-streak-alert > span { flex: 0 0 auto; font-size: 17px; }
+.replica-streak-alert p { margin: 0; color: var(--muted); font-size: 12px; }
+.replica-streak-alert strong { color: var(--accent); }
+.replica-streak-alert.ended { border-color: var(--border); background: var(--surface-2); }
+.replica-streak-alert.ended strong { color: var(--ink); }
+.preview-streak-warning { display: grid; gap: 3px; padding: 7px 8px; margin-top: 8px; border: 1px solid #e9cbd7; border-radius: 5px; background: #f6e8ee; }
+.preview-streak-warning strong { color: #8a2e52; font-size: 9px; }
+.preview-streak-warning span { color: #66565e; font-size: 8px; line-height: 1.4; }

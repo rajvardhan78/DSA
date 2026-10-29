@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 import { challengeDays } from "../src/data/challenge.js";
-import { escapeHtml, redis, sendEmail, siteUrl } from "../server/reminder-services.js";
+import { currentStreak } from "../server/streak.js";
+import { emailHtml, escapeHtml, redis, sendEmail, siteUrl } from "../server/reminder-services.js";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function dateInKolkata(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -13,13 +16,41 @@ function dateInKolkata(date = new Date()) {
 function challengeDay(startDate, today) {
   const started = new Date(`${startDate}T00:00:00Z`);
   const current = new Date(`${today}T00:00:00Z`);
-  const diff = Math.floor((current - started) / 86_400_000) + 1;
+  const diff = Math.floor((current - started) / DAY_MS) + 1;
   return diff >= 1 && diff <= 60 ? diff : null;
 }
 
-function reminderHtml(day, unsubscribeUrl, appUrl) {
-  const problemRows = day.problems.map((problem) => `<li style="padding:8px 0;border-bottom:1px solid #edf0eb;color:#435446"><span style="color:#8b9a8b;font:11px monospace">${escapeHtml(problem.difficulty.toUpperCase())}</span> &nbsp; <a style="color:#365b3d;text-decoration:none" href="${problem.leetcodeUrl}">${escapeHtml(problem.title)} ↗</a> &nbsp; <a style="color:#71885f;font-size:11px" href="${problem.notesUrl}">GFG notes</a></li>`).join("");
-  return `<div style="margin:0;padding:32px 16px;background:#f4f6f1;font:14px/1.6 Arial,sans-serif;color:#26372c"><div style="max-width:580px;margin:auto;padding:28px;border:1px solid #e5ebe2;border-radius:14px;background:#fff"><p style="color:#819177;font:10px monospace;letter-spacing:1.1px">DEVSPRINT · DAY ${String(day.day).padStart(2, "0")} OF 60</p><h1 style="margin:12px 0 5px;color:#213d2d;font-size:26px">Your next step is ready.</h1><p style="margin:0;color:#7a887c">${escapeHtml(day.track)} · ${escapeHtml(day.title)}</p><div style="padding:15px;margin:18px 0;border:1px solid #e7efdd;border-radius:8px;background:#f8faef"><strong style="color:#455d43">Today's focus</strong><p style="margin:6px 0 0;color:#788678">${escapeHtml(day.summary)}</p><a href="${day.notesUrl}" style="display:inline-block;margin-top:9px;color:#50784c;font-size:12px">Read today's GFG notes ↗</a></div><strong style="color:#3f5442">Four focused problems</strong><ul style="padding-left:17px;margin:5px 0 18px;list-style:none">${problemRows}</ul><a href="${appUrl}/?view=plan&day=${day.day}" style="display:inline-block;padding:12px 17px;border-radius:7px;background:#18372a;color:#fff;text-decoration:none">Open Day ${String(day.day).padStart(2, "0")} →</a><p style="padding-top:18px;margin-top:20px;border-top:1px solid #edf0eb;color:#9aa49b;font-size:11px">One focused day at a time. <a href="${unsubscribeUrl}" style="color:#71885f">Manage reminders / unsubscribe</a></p></div></div>`;
+function warningBlock(streakCount, hoursLeft = 24) {
+  const timeText = hoursLeft === 24 ? "You have a full 24 hours from this email to save it." : `About ${hoursLeft} hours remain in your save window.`;
+  return `<div style="margin:18px 0;padding:16px 18px;border:1px solid #E9CBD7;border-radius:10px;background:#F6E8EE"><p style="margin:0 0 5px;color:#8A2E52;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1px">⚠ STREAK AT RISK</p><strong style="color:#1A1417;font:700 18px/1.35 Georgia,'Times New Roman',serif">Keep your ${streakCount}-day streak alive.</strong><p style="margin:7px 0 0;color:#66565E;font:14px/1.55 Arial,sans-serif">${timeText} Solve any one LeetCode problem in the sprint to keep your run going.</p></div>`;
+}
+
+function reminderHtml(day, unsubscribeUrl, appUrl, streakMessage = "") {
+  const problemRows = day.problems.map((problem) => `<li style="padding:10px 0;border-bottom:1px solid #E7E0E4;color:#1A1417;font:14px/1.5 Arial,sans-serif"><span style="display:inline-block;min-width:58px;color:#7A6E74;font:700 10px/1.4 Arial,sans-serif;letter-spacing:.6px">${escapeHtml(problem.difficulty.toUpperCase())}</span><a style="color:#8A2E52;font-weight:600;text-decoration:none" href="${escapeHtml(problem.leetcodeUrl)}">${escapeHtml(problem.title)} ↗</a><br><span style="display:inline-block;margin:3px 0 0 61px"><a style="color:#7A6E74;font-size:12px" href="${escapeHtml(problem.notesUrl)}">GFG notes →</a></span></li>`).join("");
+  const content = `${streakMessage}<div style="margin:20px 0;padding:16px 18px;border:1px solid #E7E0E4;border-radius:10px;background:#FBF9FA"><p style="margin:0 0 7px;color:#8A2E52;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1px">TODAY'S FOCUS</p><strong style="color:#1A1417;font:700 17px/1.4 Georgia,'Times New Roman',serif">${escapeHtml(day.title)}</strong><p style="margin:6px 0 0;color:#7A6E74;font:14px/1.55 Arial,sans-serif">${escapeHtml(day.track)} · ${escapeHtml(day.summary)}</p><a href="${escapeHtml(day.notesUrl)}" style="display:inline-block;margin-top:10px;color:#8A2E52;font:600 13px/1.4 Arial,sans-serif">Read today's GFG notes ↗</a></div><strong style="color:#1A1417;font:700 16px/1.4 Arial,sans-serif">Four focused problems</strong><ul style="padding:0;margin:6px 0 18px;list-style:none">${problemRows}</ul>`;
+  return emailHtml({
+    preheader: `Day ${String(day.day).padStart(2, "0")} is ready: ${day.title}`,
+    eyebrow: `DAY ${String(day.day).padStart(2, "0")} OF 60 · DAILY CHECK-IN`,
+    title: "Your next step is ready.",
+    intro: `${day.track} · ${day.title}`,
+    content,
+    actionUrl: `${appUrl}/?view=plan&day=${day.day}`,
+    actionLabel: `Open Day ${String(day.day).padStart(2, "0")}`,
+    footer: `One focused day at a time. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8A2E52">Manage reminders / unsubscribe</a>`
+  });
+}
+
+function warningOnlyHtml(streakCount, unsubscribeUrl, appUrl) {
+  return emailHtml({
+    preheader: `Your ${streakCount}-day DevSprint streak needs a quick save.`,
+    eyebrow: "A QUICK STREAK CHECK-IN",
+    title: "Keep your streak going.",
+    intro: "It's been 24 hours since your last checked-off LeetCode problem.",
+    content: warningBlock(streakCount),
+    actionUrl: `${appUrl}/?view=overview`,
+    actionLabel: "Solve a problem now",
+    footer: `You're receiving this because you enrolled in DevSprint reminders. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8A2E52">Unsubscribe</a>`
+  });
 }
 
 export default async function handler(req, res) {
@@ -29,6 +60,7 @@ export default async function handler(req, res) {
 
   try {
     const today = dateInKolkata();
+    const now = Date.now();
     const appUrl = siteUrl();
     const entries = await redis(["HGETALL", "reminders:subscribers"]);
     if (!Array.isArray(entries)) return res.status(200).json({ sent: 0, skipped: 0 });
@@ -41,15 +73,38 @@ export default async function handler(req, res) {
       let subscriber;
       try { subscriber = JSON.parse(entries[index + 1]); } catch { skipped += 1; continue; }
       const dayNumber = challengeDay(subscriber.startDate, today);
-      if (!dayNumber) { skipped += 1; continue; }
-      const day = challengeDays[dayNumber - 1];
+      const day = dayNumber ? challengeDays[dayNumber - 1] : null;
       const unsubscribeUrl = `${appUrl}/api/unsubscribe?token=${encodeURIComponent(subscriber.token)}`;
+      const streak = currentStreak(subscriber, now);
+      if (streak.expired) {
+        subscriber = { ...subscriber, streakCount: 0, streakStartedAt: null, lastSolvedAt: null, warningSentAt: null };
+        await redis(["HSET", "reminders:subscribers", email, JSON.stringify(subscriber)]);
+      }
+      const lastSolved = subscriber.lastSolvedAt ? Date.parse(subscriber.lastSolvedAt) : NaN;
+      const needsWarning = !streak.expired && Number.isFinite(lastSolved) && now - lastSolved >= DAY_MS && !subscriber.warningSentAt;
+      if (!day && !needsWarning) { skipped += 1; continue; }
+
       try {
         const digest = createHash("sha256").update(email).digest("hex").slice(0, 24);
         const sentKey = `reminders:last-sent:${today}:${digest}`;
         if (await redis(["GET", sentKey])) { skipped += 1; continue; }
-        await sendEmail({ to: email, subject: `Day ${String(dayNumber).padStart(2, "0")} is ready · DevSprint`, html: reminderHtml(day, unsubscribeUrl, appUrl) });
+
+        const stillAtRisk = !streak.expired && streak.atRisk;
+        const warning = needsWarning
+          ? warningBlock(Number(subscriber.streakCount) || 1)
+          : stillAtRisk ? warningBlock(streak.count, streak.hoursLeft) : "";
+        const subject = needsWarning
+          ? `⚠ Your ${Number(subscriber.streakCount) || 1}-day streak needs a quick save · DevSprint`
+          : day ? `Day ${String(dayNumber).padStart(2, "0")} is ready · DevSprint` : `Your streak needs a quick save · DevSprint`;
+        const html = day
+          ? reminderHtml(day, unsubscribeUrl, appUrl, warning)
+          : warningOnlyHtml(Number(subscriber.streakCount) || 1, unsubscribeUrl, appUrl);
+        await sendEmail({ to: email, subject, html });
         await redis(["SET", sentKey, "1", "EX", "172800", "NX"]);
+        if (needsWarning) {
+          subscriber = { ...subscriber, warningSentAt: new Date(now).toISOString() };
+          await redis(["HSET", "reminders:subscribers", email, JSON.stringify(subscriber)]);
+        }
         sent += 1;
       } catch {
         failed += 1;

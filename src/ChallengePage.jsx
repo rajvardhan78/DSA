@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { challengeDays, projectLabs, trackMeta } from "./data/challenge.js";
+import { streakStatus } from "./streak.js";
 
 const TOTAL_TASKS = challengeDays.length * 5;
 const PHASE_LABELS = {
@@ -27,13 +28,14 @@ function b64Decode(value) {
 
 export default function ChallengePage({
   activeNav, saved, setSaved, todayDay, selectedDay, toggleDone, openPage,
-  email, setEmail, consented, setConsented, emailState, onSubmit
+  email, setEmail, consented, setConsented, emailState, onSubmit, activitySubscribed
 }) {
   const [filter, setFilter] = useState("all");
   const [hideDone, setHideDone] = useState(false);
   const [openDay, setOpenDay] = useState(selectedDay);
   const [backupCode, setBackupCode] = useState("");
   const [backupNotice, setBackupNotice] = useState("");
+  const [clock, setClock] = useState(Date.now);
   const [theme, setTheme] = useState(() => localStorage.getItem("devsprint:theme") || "system");
   const currentThemeIsDark = theme === "dark" || (theme === "system" && window.matchMedia?.("(prefers-color-scheme: dark)").matches);
 
@@ -46,6 +48,11 @@ export default function ChallengePage({
   useEffect(() => {
     setOpenDay(selectedDay);
   }, [selectedDay]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setClock(Date.now()), 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (activeNav !== "plan") return;
@@ -93,7 +100,11 @@ export default function ChallengePage({
       setSaved({
         launchDate: /^\d{4}-\d{2}-\d{2}$/.test(restored.launchDate || "") ? restored.launchDate : saved.launchDate,
         done: restored.done,
-        labs: restored.labs && typeof restored.labs === "object" ? restored.labs : {}
+        labs: restored.labs && typeof restored.labs === "object" ? restored.labs : {},
+        streakCount: Math.max(0, Number(restored.streakCount) || 0),
+        streakStartedAt: typeof restored.streakStartedAt === "string" ? restored.streakStartedAt : null,
+        lastSolvedAt: typeof restored.lastSolvedAt === "string" ? restored.lastSolvedAt : null,
+        warningSentAt: typeof restored.warningSentAt === "string" ? restored.warningSentAt : null
       });
       setBackupNotice("Progress restored on this device.");
     } catch {
@@ -105,13 +116,14 @@ export default function ChallengePage({
     if (!window.confirm("Reset all challenge and project progress on this device? This can't be undone unless you saved a backup code.")) return;
     const today = new Date();
     const launchDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    setSaved({ launchDate, done: {}, labs: {} });
+    setSaved({ launchDate, done: {}, labs: {}, streakCount: 0, streakStartedAt: null, lastSolvedAt: null, warningSentAt: null });
     setBackupCode("");
     setBackupNotice("Progress reset. Your challenge starts from Day 01 today.");
     openPage("overview", 1);
   }
 
   const dateLabel = new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "2-digit", month: "short" }).format(new Date());
+  const streak = streakStatus(saved, clock, activitySubscribed);
 
   return <div className="replica-app">
     <header className="replica-top">
@@ -133,8 +145,11 @@ export default function ChallengePage({
           <MetricTile value={`${daysCompleted}/60`} label="Days done" />
           <MetricTile value={`${lessonsDone}/60`} label="GFG readings" />
           <MetricTile value={`${problemsSolved}/240`} label="Problems solved" />
+          <div className="replica-tile replica-streak-tile"><strong><span aria-hidden="true">🔥</span> {streak.count}</strong><span>Day streak</span></div>
           <MetricTile value={`${hours}h`} label="Est. practice" />
         </div>
+        {streak.atRisk && <div className="replica-streak-alert" role="status"><span aria-hidden="true">🔥</span><p><strong>Your {streak.count}-day streak needs a solve.</strong> {activitySubscribed && !saved.warningSentAt ? "Your next daily email will open a fresh 24-hour save window." : streak.hoursLeft === null ? "Your 24-hour save window is open." : `${streak.hoursLeft} hour${streak.hoursLeft === 1 ? "" : "s"} left to keep it alive.`}</p></div>}
+        {streak.lost && <div className="replica-streak-alert ended" role="status"><span aria-hidden="true">✳</span><p><strong>Your streak has ended.</strong> Solve one problem to start a new one.</p></div>}
         <div className="replica-tabs" aria-label="Sprint sections">
           <button className={activeNav === "overview" || activeNav === "plan" ? "selected" : ""} onClick={() => openPage("overview", todayDay)}>60-day challenge</button>
           <button className={activeNav === "projects" ? "selected" : ""} onClick={() => openPage("projects")}>Project lab</button>
@@ -181,7 +196,7 @@ export default function ChallengePage({
       {activeNav === "projects" && <ProjectLab saved={saved} setSaved={setSaved} openPage={openPage} />}
       {activeNav === "reminders" && <ReminderPage
         email={email} setEmail={setEmail} consented={consented} setConsented={setConsented}
-        emailState={emailState} onSubmit={onSubmit} todayDay={todayDay}
+        emailState={emailState} onSubmit={onSubmit} todayDay={todayDay} streakCount={streak.count}
       />}
 
       <footer className="replica-footer">
@@ -191,7 +206,7 @@ export default function ChallengePage({
           <textarea className="replica-backup-code" value={backupCode} onChange={(event) => setBackupCode(event.target.value)} spellCheck="false" aria-label="Progress backup code" placeholder="Copy your backup code here, or paste one here and choose Restore." />
           {backupNotice && <p className="backup-notice" role="status">{backupNotice}</p>}
         </>}
-        <div className="replica-footer-bottom"><span>60 days · 240 problems · GFG notes · four focused stacks</span><span>Progress saves in this browser</span></div>
+        <div className="replica-footer-bottom"><span>60 days · 240 problems · GFG notes · four focused stacks</span><span>Check-offs save here · confirmed email syncs your streak</span></div>
       </footer>
     </main>
   </div>;
@@ -257,10 +272,10 @@ function ProjectLab({ saved, setSaved, openPage }) {
   </section>;
 }
 
-function ReminderPage({ email, setEmail, consented, setConsented, emailState, onSubmit, todayDay }) {
+function ReminderPage({ email, setEmail, consented, setConsented, emailState, onSubmit, todayDay, streakCount }) {
   const day = challengeDays[todayDay - 1];
   return <section className="replica-secondary-page">
-    <div className="replica-page-intro"><span className="replica-section-kicker">A LITTLE NUDGE, ON TIME</span><h2>Let tomorrow find you ready.</h2><p>Get a short daily note with your current lesson, four LeetCode problems, and the GFG notes to go with them.</p></div>
+    <div className="replica-page-intro"><span className="replica-section-kicker">A LITTLE NUDGE, ON TIME</span><h2>Let tomorrow find you ready.</h2><p>Get a short daily note with your current lesson, four LeetCode problems, GFG notes, and a 24-hour email warning when your streak needs saving.</p></div>
     <div className="replica-reminder-layout">
       <div className="replica-reminder-card">
         <div className="replica-reminder-top"><span className="replica-bell">♧</span><span><i /> DAILY · 9:00 AM IST</span></div>
@@ -271,11 +286,11 @@ function ReminderPage({ email, setEmail, consented, setConsented, emailState, on
           <button className="replica-button submit" type="submit" disabled={emailState.kind === "loading" || !consented}>{emailState.kind === "loading" ? "Sending confirmation…" : "Enroll for daily reminders"} <span>→</span></button>
           {emailState.message && <div className={`replica-message ${emailState.kind}`} role="status">{emailState.kind === "success" ? "✓" : emailState.kind === "error" ? "!" : "·"} {emailState.message}</div>}
         </form>
-        <div className="replica-privacy">◎ <span>Your email is used only for sprint reminders. Challenge progress stays in your browser.</span></div>
+        <div className="replica-privacy">◎ <span>Your email is used for sprint reminders. Check-offs stay in this browser; confirmed subscribers also sync streak activity for reminder emails.</span></div>
       </div>
       <aside className="replica-reminder-side">
-        <div className="replica-email-preview"><div className="preview-bar"><b>&lt;/&gt;</b><span>PREVIEW · 9:00 AM</span><i>···</i></div><div className="preview-body"><small>GOOD MORNING. DAY {String(todayDay).padStart(2, "0")} IS READY.</small><h3>Small steps.<br />Real progress.</h3><p>Your next focused session is waiting.</p><div className="preview-lesson"><span>01</span><div><strong>{day.title}</strong><small>{day.track} · GFG notes</small></div><b>↗</b></div><div className="preview-problem-count">4 LEETCODE PROBLEMS <span>2 easy · 1 medium · 1 hard</span></div><div className="preview-skeleton"><i /><i /><i /></div><footer>YOU'RE GETTING CLOSER. KEEP GOING ✳</footer></div></div>
-        <div className="replica-how"><span className="replica-section-kicker">HOW IT WORKS</span><p><b>01 · Confirm once.</b> We'll send a confirmation link first.</p><p><b>02 · One email each morning.</b> Your day plan and notes arrive around 9 AM IST.</p><p><b>03 · Leave anytime.</b> Each reminder includes an unsubscribe link.</p></div>
+        <div className="replica-email-preview"><div className="preview-bar"><b>&lt;/&gt;</b><span>PREVIEW · 9:00 AM</span><i>···</i></div><div className="preview-body"><small>GOOD MORNING. DAY {String(todayDay).padStart(2, "0")} IS READY.</small><h3>Small steps.<br />Real progress.</h3><p>Your next focused session is waiting.</p>{streakCount > 0 && <div className="preview-streak-warning"><strong>🔥 {streakCount}-day streak at risk</strong><span>We'll email a 24-hour save window if you miss your solve.</span></div>}<div className="preview-lesson"><span>01</span><div><strong>{day.title}</strong><small>{day.track} · GFG notes</small></div><b>↗</b></div><div className="preview-problem-count">4 LEETCODE PROBLEMS <span>2 easy · 1 medium · 1 hard</span></div><div className="preview-skeleton"><i /><i /><i /></div><footer>YOU'RE GETTING CLOSER. KEEP GOING ✳</footer></div></div>
+        <div className="replica-how"><span className="replica-section-kicker">HOW IT WORKS</span><p><b>01 · Confirm once.</b> We'll send a confirmation link first.</p><p><b>02 · One email each morning.</b> Your day plan and notes arrive around 9 AM IST.</p><p><b>03 · Save your streak.</b> After 24 hours without a solve, we'll warn you and give you another 24 hours to solve one.</p><p><b>04 · Leave anytime.</b> Each reminder includes an unsubscribe link.</p></div>
       </aside>
     </div>
     <p className="replica-reminder-setup">Email reminders activate after deployment when Resend and Upstash credentials are set. Setup instructions are in <code>README.md</code>.</p>
