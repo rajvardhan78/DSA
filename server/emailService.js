@@ -1,4 +1,5 @@
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const DEFAULT_REMINDER_FROM = "Resend <onboarding@resend.dev>";
 
 export function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
@@ -12,27 +13,45 @@ export function emailHtml({ preheader, eyebrow, title, intro, content = "", acti
 }
 
 function isConfigured() {
-  return Boolean(process.env.RESEND_API_KEY && process.env.REMINDER_FROM_EMAIL);
+  return Boolean(process.env.RESEND_API_KEY);
 }
 
-async function send({ to, subject, html }) {
-  if (!isConfigured()) throw new Error("Email delivery is not configured.");
-  if (!to || !subject || !html) throw new Error("A recipient, subject, and HTML body are required.");
+function senderAddress() {
+  return process.env.REMINDER_FROM_EMAIL?.trim() || DEFAULT_REMINDER_FROM;
+}
 
+async function sendRequest(payload) {
+  if (!isConfigured()) throw new Error("Email delivery is not configured.");
   const response = await fetch(RESEND_ENDPOINT, {
     method: "POST",
     headers: {
       authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       "content-type": "application/json"
     },
-    body: JSON.stringify({ from: process.env.REMINDER_FROM_EMAIL, to: Array.isArray(to) ? to : [to], subject, html })
+    body: JSON.stringify({ from: senderAddress(), ...payload })
   });
   if (!response.ok) throw new Error("Email delivery failed.");
   return response.json().catch(() => ({}));
 }
 
+async function send({ to, subject, html }) {
+  if (!to || !subject || !html) throw new Error("A recipient, subject, and HTML body are required.");
+  return sendRequest({ to: Array.isArray(to) ? to : [to], subject, html });
+}
+
+async function sendTemplate({ to, templateId, variables }) {
+  if (!to || !templateId || !variables || typeof variables !== "object") {
+    throw new Error("A recipient, template ID, and template variables are required.");
+  }
+  return sendRequest({
+    to: Array.isArray(to) ? to : [to],
+    template: { id: templateId, variables }
+  });
+}
+
 export const emailService = Object.freeze({
   send,
+  sendTemplate,
   render: emailHtml,
   escapeHtml,
   isConfigured

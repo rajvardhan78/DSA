@@ -4,6 +4,7 @@ import { currentStreak } from "../server/streak.js";
 import { emailService } from "../server/emailService.js";
 import { redis, siteUrl } from "../server/reminder-services.js";
 const escapeHtml = emailService.escapeHtml;
+const DAILY_CHALLENGE_TEMPLATE_ID = process.env.RESEND_DAILY_TEMPLATE_ID || "4ae162c8-194c-48f8-8689-2a99c84aadd5";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -27,19 +28,60 @@ function warningBlock(streakCount, hoursLeft = 24) {
   return `<div style="margin:18px 0;padding:16px 18px;border:1px solid #E9CBD7;border-radius:10px;background:#F6E8EE"><p style="margin:0 0 5px;color:#8A2E52;font:700 11px/1.4 Courier New,Courier,monospace;letter-spacing:1px">⚠ STREAK AT RISK</p><strong style="color:#1A1417;font:700 18px/1.35 Courier New,Courier,monospace">Keep your ${streakCount}-day streak alive.</strong><p style="margin:7px 0 0;color:#66565E;font:14px/1.55 Courier New,Courier,monospace">${timeText} Solve any one LeetCode problem in the sprint to keep your run going.</p></div>`;
 }
 
-function reminderHtml(day, unsubscribeUrl, appUrl, streakMessage = "") {
-  const problemRows = day.problems.map((problem) => `<li style="padding:10px 0;border-bottom:1px solid #E7E0E4;color:#1A1417;font:14px/1.5 Courier New,Courier,monospace"><span style="display:inline-block;min-width:58px;color:#7A6E74;font:700 10px/1.4 Courier New,Courier,monospace;letter-spacing:.6px">${escapeHtml(problem.difficulty.toUpperCase())}</span><a style="color:#8A2E52;font-weight:600;text-decoration:none" href="${escapeHtml(problem.leetcodeUrl)}">${escapeHtml(problem.title)} ↗</a><br><span style="display:inline-block;margin:3px 0 0 61px"><a style="color:#7A6E74;font-size:12px" href="${escapeHtml(problem.notesUrl)}">GFG notes →</a></span></li>`).join("");
-  const content = `${streakMessage}<div style="margin:20px 0;padding:16px 18px;border:1px solid #E7E0E4;border-radius:10px;background:#FBF9FA"><p style="margin:0 0 7px;color:#8A2E52;font:700 11px/1.4 Courier New,Courier,monospace;letter-spacing:1px">TODAY'S FOCUS</p><strong style="color:#1A1417;font:700 17px/1.4 Courier New,Courier,monospace">${escapeHtml(day.title)}</strong><p style="margin:6px 0 0;color:#7A6E74;font:14px/1.55 Courier New,Courier,monospace">${escapeHtml(day.track)} · ${escapeHtml(day.summary)}</p><a href="${escapeHtml(day.notesUrl)}" style="display:inline-block;margin-top:10px;color:#8A2E52;font:600 13px/1.4 Courier New,Courier,monospace">Read today's GFG notes ↗</a></div><strong style="color:#1A1417;font:700 16px/1.4 Courier New,Courier,monospace">Four focused problems</strong><ul style="padding:0;margin:6px 0 18px;list-style:none">${problemRows}</ul>`;
-  return emailService.render({
-    preheader: `Day ${String(day.day).padStart(2, "0")} is ready: ${day.title}`,
-    eyebrow: `DAY ${String(day.day).padStart(2, "0")} OF 60 · DAILY CHECK-IN`,
-    title: "Your next step is ready.",
-    intro: `${day.track} · ${day.title}`,
-    content,
-    actionUrl: `${appUrl}/?view=plan&day=${day.day}`,
-    actionLabel: `Open Day ${String(day.day).padStart(2, "0")}`,
-    footer: `One focused day at a time. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8A2E52">Manage reminders / unsubscribe</a>`
-  });
+function problemsForTemplate(day) {
+  const easy = day.problems.filter((problem) => problem.difficulty.toLowerCase() === "easy");
+  const medium = day.problems.filter((problem) => problem.difficulty.toLowerCase() === "medium");
+  const hard = day.problems.filter((problem) => problem.difficulty.toLowerCase() === "hard");
+  if (easy.length < 2 || !medium[0] || !hard[0]) {
+    throw new Error(`Day ${day.day} does not have the four expected difficulty levels.`);
+  }
+  return { easy1: easy[0], easy2: easy[1], medium: medium[0], hard: hard[0] };
+}
+
+function streakStatusMessage({ streakCount, needsWarning, stillAtRisk, hoursLeft }) {
+  if (needsWarning) {
+    return `Your ${streakCount}-day streak is at risk. You have a full 24 hours from this email to solve any one assigned problem and save it.`;
+  }
+  if (stillAtRisk) {
+    return `Your ${streakCount}-day streak is at risk. About ${hoursLeft} hours remain in your save window; solve any one assigned problem to keep it going.`;
+  }
+  if (streakCount > 0) {
+    return `Your ${streakCount}-day streak is active. Solve any one assigned problem today to keep it going.`;
+  }
+  return "Solve any one assigned problem today to start your streak.";
+}
+
+function dailyTemplateVariables({ day, streak, needsWarning, stillAtRisk, unsubscribeUrl, appUrl }) {
+  const problems = problemsForTemplate(day);
+  const streakCount = streak.expired ? 0 : Number(streak.count) || 0;
+  return {
+    day_number: day.day,
+    track_name: day.track,
+    lesson_title: day.title,
+    lesson_summary: day.summary,
+    gfg_notes_url: day.notesUrl,
+    easy_1_title: problems.easy1.title,
+    easy_1_leetcode_url: problems.easy1.leetcodeUrl,
+    easy_1_gfg_url: problems.easy1.notesUrl,
+    easy_2_title: problems.easy2.title,
+    easy_2_leetcode_url: problems.easy2.leetcodeUrl,
+    easy_2_gfg_url: problems.easy2.notesUrl,
+    medium_title: problems.medium.title,
+    medium_leetcode_url: problems.medium.leetcodeUrl,
+    medium_gfg_url: problems.medium.notesUrl,
+    hard_title: problems.hard.title,
+    hard_leetcode_url: problems.hard.leetcodeUrl,
+    hard_gfg_url: problems.hard.notesUrl,
+    streak_count: streakCount,
+    streak_status_message: streakStatusMessage({
+      streakCount,
+      needsWarning,
+      stillAtRisk,
+      hoursLeft: streak.hoursLeft
+    }),
+    challenge_url: `${appUrl}/?view=plan&day=${day.day}`,
+    unsubscribe_url: unsubscribeUrl
+  };
 }
 
 function warningOnlyHtml(streakCount, unsubscribeUrl, appUrl) {
@@ -92,16 +134,18 @@ export default async function handler(req, res) {
         if (await redis(["GET", sentKey])) { skipped += 1; continue; }
 
         const stillAtRisk = !streak.expired && streak.atRisk;
-        const warning = needsWarning
-          ? warningBlock(Number(subscriber.streakCount) || 1)
-          : stillAtRisk ? warningBlock(streak.count, streak.hoursLeft) : "";
-        const subject = needsWarning
-          ? `⚠ Your ${Number(subscriber.streakCount) || 1}-day streak needs a quick save · DevSprint`
-          : day ? `Day ${String(dayNumber).padStart(2, "0")} is ready · DevSprint` : `Your streak needs a quick save · DevSprint`;
-        const html = day
-          ? reminderHtml(day, unsubscribeUrl, appUrl, warning)
-          : warningOnlyHtml(Number(subscriber.streakCount) || 1, unsubscribeUrl, appUrl);
-        await emailService.send({ to: email, subject, html });
+        if (day) {
+          await emailService.sendTemplate({
+            to: email,
+            templateId: DAILY_CHALLENGE_TEMPLATE_ID,
+            variables: dailyTemplateVariables({ day, streak, needsWarning, stillAtRisk, unsubscribeUrl, appUrl })
+          });
+        } else {
+          const streakCount = Number(subscriber.streakCount) || 1;
+          const subject = `⚠ Your ${streakCount}-day streak needs a quick save · DevSprint`;
+          const html = warningOnlyHtml(streakCount, unsubscribeUrl, appUrl);
+          await emailService.send({ to: email, subject, html });
+        }
         await redis(["SET", sentKey, "1", "EX", "172800", "NX"]);
         if (needsWarning) {
           subscriber = { ...subscriber, warningSentAt: new Date(now).toISOString() };
