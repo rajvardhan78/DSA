@@ -9,6 +9,8 @@ npm install
 npm run dev
 ```
 
+`npm run dev` starts Vite's frontend only; it does not run the `/api` Vercel Functions. To try enrollment locally, link the project with `vercel link` and run `npx vercel dev` from the repository root. Vercel documents `vercel dev` as the local runtime for its Functions, and it loads the linked project's Development environment variables.
+
 The client stores challenge check-offs, the challenge start date, the selected theme, project-lab steps, and your problem-solving streak in browser local storage. No user account is needed. Use **Copy backup code** to move progress between devices. After confirming email reminders, the app also syncs streak activity to Redis so reminder emails can warn about a streak at risk; problem check-offs remain in the browser. The app can be deployed as a normal Vite static site on Vercel; the `/api` files are Vercel Functions.
 
 ## Daily reminder service

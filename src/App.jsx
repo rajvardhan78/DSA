@@ -135,12 +135,22 @@ export default function App() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: email.trim(), consent: consented, startDate: saved.launchDate })
       });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.toLowerCase().includes("json")) {
+        const message = response.status === 404
+          ? "The email API route is missing here. `npm run dev` only runs the Vite frontend; use `npx vercel dev` for local email APIs, or deploy this project to Vercel."
+          : `The email API returned a non-JSON response (HTTP ${response.status}). Run this app with Vercel Functions enabled and check that /api/subscribe is deployed.`;
+        throw new Error(message);
+      }
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "The reminder service is not configured yet.");
       setEmailState({ kind: "success", message: payload.message || "Check your inbox to confirm your daily reminder." });
       setEmail("");
     } catch (error) {
-      setEmailState({ kind: "error", message: error.message || "We couldn't enroll that address. Please try again." });
+      const message = error instanceof TypeError
+        ? "Couldn't reach the email API. Use `npx vercel dev` locally or check that this Vercel deployment includes /api/subscribe."
+        : error.message || "We couldn't enroll that address. Please try again.";
+      setEmailState({ kind: "error", message });
     }
   }
 

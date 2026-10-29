@@ -5,6 +5,17 @@ import { redis, siteUrl } from "../server/reminder-services.js";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+function missingReminderSettings() {
+  const required = [
+    ["RESEND_API_KEY", process.env.RESEND_API_KEY],
+    ["REMINDER_FROM_EMAIL", process.env.REMINDER_FROM_EMAIL],
+    ["UPSTASH_REDIS_REST_URL", process.env.UPSTASH_REDIS_REST_URL],
+    ["UPSTASH_REDIS_REST_TOKEN", process.env.UPSTASH_REDIS_REST_TOKEN],
+    ["SITE_URL", process.env.SITE_URL || process.env.VERCEL_URL]
+  ];
+  return required.filter(([, value]) => !value).map(([name]) => name);
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST to enroll." });
   let body;
@@ -53,7 +64,12 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({ message: "Check your inbox to confirm your daily reminder." });
-  } catch {
-    return res.status(503).json({ error: "Daily reminders aren't configured yet. The app owner needs to connect email and subscriber storage." });
+  } catch (error) {
+    console.error("DevSprint reminder enrollment failed:", error.message);
+    const missing = missingReminderSettings();
+    if (missing.length) {
+      return res.status(503).json({ error: `Email reminders need these environment variables: ${missing.join(", ")}. Add them in Vercel Project Settings → Environment Variables, then redeploy.` });
+    }
+    return res.status(503).json({ error: "The email service could not send your confirmation. Check the Resend and Upstash settings, then try again." });
   }
 }
