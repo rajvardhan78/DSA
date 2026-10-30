@@ -136,9 +136,27 @@ export default function ChallengePage({
             <p className="replica-sub">C# Core → .NET Core → JavaScript → React. One focused lesson and four LeetCode problems a day.</p>
           </div>
           <div className="replica-header-actions">
-            <span className="replica-date">{dateLabel} <i /> DAY {String(todayDay).padStart(2, "0")}</span>
-            <button className="replica-button" onClick={visitCurrentDay}>Go to current day <span>↓</span></button>
-            <button className="replica-theme-button" onClick={toggleTheme} aria-label={`Switch to ${currentThemeIsDark ? "light" : "dark"} theme`}>{currentThemeIsDark ? "☼" : "☾"}</button>
+            <div className="replica-header-meta">
+              <span className="replica-date">{dateLabel} <i /> DAY {String(todayDay).padStart(2, "0")}</span>
+            </div>
+            <div className="replica-header-btns">
+              <button className="replica-button" onClick={visitCurrentDay}>Go to current day <span>↓</span></button>
+              <a
+                className="replica-coffee-button"
+                href="https://buymeacoffee.com/rajvardhan78"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Support DevSprint on Buy Me a Coffee"
+                title="Support DevSprint on Buy Me a Coffee"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" />
+                </svg>
+                <span className="replica-coffee-full">Buy me a coffee</span>
+                <span className="replica-coffee-short">Coffee</span>
+              </a>
+              <button className="replica-theme-button" onClick={toggleTheme} aria-label={`Switch to ${currentThemeIsDark ? "light" : "dark"} theme`}>{currentThemeIsDark ? "☼" : "☾"}</button>
+            </div>
           </div>
         </div>
         <div className="replica-meter"><div className="replica-meter-track"><i style={{ width: `${progress}%` }} /></div><strong>{progress}%</strong></div>
