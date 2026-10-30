@@ -332,7 +332,7 @@ const lessons = [
   ])
 ];
 
-const gfgSearch = (query) => `https://www.geeksforgeeks.org/search/?q=${encodeURIComponent(query)}`;
+import { getLessonNotesUrl, getProblemNotesUrl } from "./gfgLinks.js";
 
 export const challengeDays = lessons.map((lesson, index) => {
   const day = index + 1;
@@ -340,13 +340,13 @@ export const challengeDays = lessons.map((lesson, index) => {
     ...problem,
     difficulty: problemIndex < 2 ? "Easy" : problemIndex === 2 ? "Medium" : "Hard",
     leetcodeUrl: `https://leetcode.com/problems/${problem.slug}/`,
-    notesUrl: gfgSearch(`${problem.title} solution notes`)
+    notesUrl: getProblemNotesUrl(problem)
   }));
   return {
     day,
     week: Math.ceil(day / 5),
     ...lesson,
-    notesUrl: gfgSearch(`${lesson.track} ${lesson.title}`),
+    notesUrl: getLessonNotesUrl(day, lesson.title, lesson.track),
     problems
   };
 });
